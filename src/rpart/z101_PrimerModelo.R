@@ -1,23 +1,26 @@
 #Arbol elemental con libreria  rpart
 #Debe tener instaladas las librerias  data.table  ,  rpart  y  rpart.plot
 
+## ESTE SCRIPT ESTÁ MODIFICADO, ANTES NO TENÍA CLASE BINARIA, ERA DIRECTO CON TERNARIA
+
 #cargo las librerias que necesito
 require("data.table")
 require("rpart")
 require("rpart.plot")
 
 #Aqui se debe poner la carpeta de la materia de SU computadora local
-setwd("D:\\gdrive\\UBA2022\\")  #Establezco el Working Directory
+setwd("C:/Users/lisan/OneDrive/Escritorio/MAESTRIA/eyf")  #Establezco el Working Directory
 
 #cargo el dataset
 dataset  <- fread("./datasets/competencia1_2022.csv")
-
+dataset[, clase_binaria := ifelse(clase_ternaria == 'CONTINUA', 'NEG', 'POS')]
+dataset[, clase_mensual := ifelse(foto_mes == '202101', 'ENERO', 'MARZO')]
 dtrain  <- dataset[ foto_mes==202101 ]  #defino donde voy a entrenar
 dapply  <- dataset[ foto_mes==202103 ]  #defino donde voy a aplicar el modelo
 
 #genero el modelo,  aqui se construye el arbol
-modelo  <- rpart(formula=   "clase_ternaria ~ .",  #quiero predecir clase_ternaria a partir de el resto de las variables
-                 data=      dtrain,  #los datos donde voy a entrenar
+modelo  <- rpart(formula=   "clase_mensual ~ .-foto_mes -clase_ternaria -clase_binaria",  #quiero predecir clase_ternaria a partir de el resto de las variables
+                 data=      dataset,  #los datos donde voy a entrenar
                  xval=      0,
                  cp=       -0.3,   #esto significa no limitar la complejidad de los splits
                  minsplit=  0,     #minima cantidad de registros para que se haga el split
