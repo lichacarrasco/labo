@@ -6,12 +6,12 @@ require("data.table")
 require("rpart")
 require("rpart.plot")
 
-setwd("." )  #establezco la carpeta donde voy a trabajar
+setwd("C:/Users/lisan/OneDrive/Escritorio/MAESTRIA/eyf" )  #establezco la carpeta donde voy a trabajar
 #cargo el dataset
 dataset  <- fread( "./datasets/competencia1_2022.csv")
 
 #uso esta semilla para los canaritos
-set.seed(102191)
+set.seed(912031)
 
 #agrego una variable canarito, random distribucion uniforme en el intervalo [0,1]
 dataset[ ,  canarito1 :=  runif( nrow(dataset) ) ]
