@@ -9,7 +9,7 @@ require("rpart")
 require("rpart.plot")
 
 #Aqui se debe poner la carpeta de la computadora local
-setwd("~/buckets/b1/")  #Establezco el Working Directory
+setwd("C:/Users/Cohen2/Desktop/eyf")  #Establezco el Working Directory
 
 #cargo los datos donde entreno
 dataset  <- fread("./datasets/competencia2_2022.csv.gz")
@@ -26,10 +26,10 @@ param_buenos  <- list( "cp"=         -1,
                        "minbucket"= 150,
                        "maxdepth"=    6 )
 
-num_trees         <- 200    #voy a generar 200 arboles, a mas arboles mas tiempo de proceso y MEJOR MODELO
+num_trees         <- 10    #voy a generar 200 arboles, a mas arboles mas tiempo de proceso y MEJOR MODELO
 feature_fraction  <-   0.5  #entreno cada arbol con solo 50% de las variables variables
 
-set.seed(102191) #Establezco la semilla aleatoria, cambiar por SU primer semilla
+set.seed(311203) #Establezco la semilla aleatoria, cambiar por SU primer semilla
 
 #inicializo en CERO el vector de las probabilidades en dapply
 #Aqui es donde voy acumulando, sumando, las probabilidades
@@ -66,7 +66,7 @@ for(  i in  1:num_trees ) #genero  num_trees arboles
                     control= param_buenos )
 
   #grafico el modelo
-  prp(modelo, extra=101, digits=5, branch=1, type=4, varlen=0, faclen=0)
+  #prp(modelo, extra=101, digits=5, branch=1, type=4, varlen=0, faclen=0)
 
   #aplico el modelo a los datos que no tienen clase
   prediccion  <- predict( modelo, dapply , type = "prob")

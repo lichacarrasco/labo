@@ -8,7 +8,7 @@ require("rpart.plot")
 
 
 #Aqui se debe poner la carpeta de la materia de SU computadora local
-setwd("~/buckets/b1/")  #Establezco el Working Directory
+setwd("C:/Users/Cohen2/Desktop/eyf")  #Establezco el Working Directory
 
 #cargo el dataset de la competencia 2  , que tiene lo que paso en 202103
 dataset  <- fread("./datasets/competencia2_2022.csv.gz")  #donde entreno
@@ -43,10 +43,10 @@ dataset[  , prob_SI := prediccion[ , "SI"]  ]
 
 dataset[  , gan := ifelse( clase_ternaria=="BAJA+2", 78000, -2000 ) ]
 
-tb_hojas  <-  dataset[  , list( reg_202101 = sum( ifelse( foto_mes==202101, 1, 0 ) ),
-                                reg_202103 = sum( ifelse( foto_mes==202103, 1, 0 ) ),
-                                b2_202101  = sum( ifelse( foto_mes==202101 & clase_ternaria=="BAJA+2", 1, 0 ) ),
-                                b2_202103  = sum( ifelse( foto_mes==202103 & clase_ternaria=="BAJA+2", 1, 0 ) ),
+tb_hojas  <-  dataset[  , list( regalos_202101 = sum( ifelse( foto_mes==202101, 1, 0 ) ),
+                                regalos_202103 = sum( ifelse( foto_mes==202103, 1, 0 ) ),
+                                aciertos_baja2_202101  = sum( ifelse( foto_mes==202101 & clase_ternaria=="BAJA+2", 1, 0 ) ),
+                                aciertos_baja2_202103  = sum( ifelse( foto_mes==202103 & clase_ternaria=="BAJA+2", 1, 0 ) ),
                                 gan_202101 = sum( ifelse( foto_mes==202101, gan, 0 ) ),
                                 gan_202103 = sum( ifelse( foto_mes==202103, gan, 0 ) ) ),
                          by= prob_SI ]
@@ -69,6 +69,6 @@ tb_hojas[  , ganacum_202103 := cumsum( gan_202103 ) ]
 
 
 fwrite( tb_hojas,
-        file= "tb_hojas.txt",
+        file= "tb_hojas.xlsx",
         sep= "\t" )
         

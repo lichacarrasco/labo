@@ -40,7 +40,7 @@ graficar_campo  <- function( campo, campo_clase, valores_clase )
 }
 #------------------------------------------------------------------------------
 #Aqui comienza el programa
-setwd("~/buckets/b1")
+setwd("C:/Users/Cohen2/Desktop/eyf")
 
 #cargo el dataset donde voy a entrenar
 dataset  <- fread("./datasets/competencia2_2022.csv.gz")
