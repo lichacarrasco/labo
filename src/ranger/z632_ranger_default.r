@@ -15,7 +15,7 @@ require("parallel")
 
 
 
-ksemilla_azar  <- 102191  #Aqui poner la propia semilla
+ksemilla_azar  <- 311203  #Aqui poner la propia semilla
 
 #------------------------------------------------------------------------------
 #graba a un archivo los componentes de lista
@@ -130,7 +130,7 @@ EstimarGanancia_ranger  <- function( x )
 #Aqui comienza el programa
 
 #Aqui se debe poner la carpeta de la computadora local
-setwd("~/buckets/b1/")  #Establezco el Working Directory
+setwd("C:/Users/Cohen2/Desktop/eyf")  #Establezco el Working Directory
 
 #cargo el dataset donde voy a entrenar el modelo
 dataset  <- fread("./datasets/competencia2_2022.csv.gz", stringsAsFactors= TRUE)   #donde entreno
