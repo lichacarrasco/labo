@@ -11,7 +11,11 @@ gc()             #garbage collection
 
 require("data.table")
 require("lightgbm")
-
+require("dplyr")
+ht <- fread("C:/Users/Cohen2/Desktop/eyf/labo/lisandro/competencia2/HT7231/HT7231.txt")
+ht <- ht %>% 
+  arrange(desc(ganancia))
+elegido <- ht[15,]
 
 #defino los parametros de la corrida, en una lista, la variable global  PARAM
 #  muy pronto esto se leera desde un archivo formato .yaml
@@ -28,7 +32,7 @@ PARAM$finalmodel$num_iterations    <-    328  #615
 PARAM$finalmodel$num_leaves        <-   1015  #784
 PARAM$finalmodel$min_data_in_leaf  <-   5542  #5628
 PARAM$finalmodel$feature_fraction  <-      0.7832319551  #0.8382482539
-PARAM$finalmodel$semilla           <- 102191
+PARAM$finalmodel$semilla           <- 912031
 
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
