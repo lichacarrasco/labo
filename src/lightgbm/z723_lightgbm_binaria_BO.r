@@ -32,11 +32,11 @@ options(error = function() {
 
 #Aqui se cargan los hiperparametros
 hs <- makeParamSet( 
-         makeNumericParam("learning_rate",    lower=    0.005, upper=    0.3),
-         makeNumericParam("feature_fraction", lower=    0.2  , upper=    1.0),
+         makeNumericParam("learning_rate",    lower=    0.001, upper=    0.3),
+         makeNumericParam("feature_fraction", lower=    0.2  , upper=    0.75),
          makeIntegerParam("min_data_in_leaf", lower=    0L   , upper=  8000L),
          makeIntegerParam("num_leaves",       lower=   16L   , upper=  1024L),
-         makeIntegerParam("envios",           lower= 5000L   , upper= 15000L)
+         makeIntegerParam("envios",           lower= 7500L   , upper= 11000L)
         )
 
 #defino los parametros de la corrida, en una lista, la variable global  PARAM
@@ -49,14 +49,17 @@ PARAM$input$dataset       <- "./datasets/competencia2_2022.csv.gz"
 PARAM$input$training      <- c( 202103 )
 
 PARAM$trainingstrategy$undersampling  <-  1.0   # un undersampling de 0.1  toma solo el 10% de los CONTINUA
-PARAM$trainingstrategy$semilla_azar   <- 102191  #Aqui poner la propia semilla
+PARAM$trainingstrategy$semilla_azar   <- 250501  #Aqui poner la propia semilla
 
-PARAM$hyperparametertuning$iteraciones <- 100
-PARAM$hyperparametertuning$xval_folds  <- 5
+PARAM$hyperparametertuning$iteraciones <- 5
+PARAM$hyperparametertuning$xval_folds  <- 3
 PARAM$hyperparametertuning$POS_ganancia  <- 78000
 PARAM$hyperparametertuning$NEG_ganancia  <- -2000
 
-PARAM$hyperparametertuning$semilla_azar  <- 912031  #Aqui poner la propia semilla, PUEDE ser distinta a la de trainingstrategy
+PARAM$hyperparametertuning$semilla_azar  <- c(311203, 120929, 181213, 912031, 201809, 
+                                              270810, 091218, 042018, 109122, 122926)  #Aqui poner la propia semilla, PUEDE ser distinta a la de trainingstrategy
+
+
 
 #------------------------------------------------------------------------------
 #graba a un archivo los componentes de lista
@@ -109,15 +112,15 @@ fganancia_logistic_lightgbm  <- function( probs, datos)
 EstimarGanancia_lightgbm  <- function( x )
 {
   gc()  #libero memoria
-
+  
   #llevo el registro de la iteracion por la que voy
   GLOBAL_iteracion  <<- GLOBAL_iteracion + 1
-
+  
   #para usar en fganancia_logistic_lightgbm 
   GLOBAL_envios <<- as.integer(x$envios/PARAM$hyperparametertuning$xval_folds)   #asigno la variable global
-
+  
   kfolds  <- PARAM$hyperparametertuning$xval_folds   # cantidad de folds para cross validation
-
+  
   param_basicos  <- list( objective= "binary",
                           metric= "custom",
                           first_metric_only= TRUE,
@@ -132,13 +135,13 @@ EstimarGanancia_lightgbm  <- function( x )
                           num_iterations= 9999,   #un numero muy grande, lo limita early_stopping_rounds
                           force_row_wise= TRUE,   #para que los alumnos no se atemoricen con tantos warning
                           seed= PARAM$hyperparametertuning$semilla_azar
-                        )
-
+  )
+  
   #el parametro discolo, que depende de otro
   param_variable  <- list(  early_stopping_rounds= as.integer(50 + 5/x$learning_rate) )
-
+  
   param_completo  <- c( param_basicos, param_variable, x )
-
+  
   set.seed( PARAM$hyperparametertuning$semilla_azar )
   modelocv  <- lgb.cv( data= dtrain,
                        eval= fganancia_logistic_lightgbm,
@@ -146,13 +149,13 @@ EstimarGanancia_lightgbm  <- function( x )
                        nfold= kfolds,    #folds del cross validation
                        param= param_completo,
                        verbose= -100
-                      )
-
+  )
+  
   #obtengo la ganancia
   ganancia  <- unlist(modelocv$record_evals$valid$ganancia$eval)[ modelocv$best_iter ]
-
+  
   ganancia_normalizada  <-  ganancia* kfolds     #normailizo la ganancia
-
+  
   param_completo$num_iterations <- modelocv$best_iter  #asigno el mejor num_iterations
   param_completo["early_stopping_rounds"]  <- NULL     #elimino de la lista el componente  "early_stopping_rounds"
   
@@ -163,25 +166,25 @@ EstimarGanancia_lightgbm  <- function( x )
     modelo  <- lgb.train( data= dtrain,
                           param= param_completo,
                           verbose= -100
-                         )
-
+    )
+    
     tb_importancia  <- as.data.table( lgb.importance(modelo ) )
     archivo_importancia  <- paste0( "impo_", GLOBAL_iteracion,".txt")
     fwrite( tb_importancia,
             file= archivo_importancia,
             sep= "\t" )
   }
-
-
+  
+  
   #el lenguaje R permite asignarle ATRIBUTOS a cualquier variable
   attr(ganancia_normalizada ,"extras" )  <- list("num_iterations"= modelocv$best_iter)  #esta es la forma de devolver un parametro extra
-
+  
   #logueo 
   xx  <- param_completo
   xx$ganancia  <- ganancia_normalizada   #le agrego la ganancia
   xx$iteracion <- GLOBAL_iteracion
   loguear( xx, arch= klog )
-
+  
   return( ganancia_normalizada )
 }
 #------------------------------------------------------------------------------
@@ -192,7 +195,7 @@ EstimarGanancia_lightgbm  <- function( x )
 setwd("C:/Users/Cohen2/Desktop/eyf")   #Establezco el Working Directory
 
 #cargo el dataset donde voy a entrenar el modelo
-dataset  <- fread( PARAM$input$dataset )
+dataset  <- fread('./dataset/competencia2_2022.csv.gz')
 
 #creo la carpeta donde va el experimento
 # HT  representa  Hiperparameter Tuning
