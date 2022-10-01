@@ -89,7 +89,8 @@ Session.vim
 
 *.bak
 *.backup
-
+*.Rhistory
+*.gitignore
 
 #######################################
 # Languages                           #
