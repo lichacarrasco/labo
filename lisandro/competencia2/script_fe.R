@@ -2,6 +2,9 @@
 
 require(data.table)
 require(dplyr)
+require(glue)
+require(readxl)
+require(stringr)
 
 setwd('C:/Users/lisan/OneDrive/Escritorio/MAESTRIA/eyf')
 dataset <- fread( "./datasets/competencia2_2022.csv.gz" )
@@ -15,8 +18,8 @@ dataset <- fread( "./datasets/competencia2_2022.csv.gz" )
 #   rownames_to_column("columna")%>%
 #   filter(faltantes > 0)                                                         # 46 cols con nans
 # 
-# # dataset[is.na(dataset)] <- 0                                                    # Imputo a 0 porque sí 
-# # any(is.na(dataset))
+dataset[is.na(dataset)] <- 0                                                    # Imputo a 0 porque sí 
+ any(is.na(dataset))
 
 dataset[ foto_mes==202103, 
          clase_binaria :=  ifelse( clase_ternaria=="CONTINUA", "NO", "SI" ) ]   # Estos nans no se imputan
@@ -119,16 +122,12 @@ dataset <- dataset %>%
 
 #  * 1 - Agostina Simonelli -----------------------------------------------
 
-dataset[, f_ccompras_total_tj  := Master_cconsumos+Visa_cconsumos]
-dataset[, f_mcompras_total_tj  := Master_mconsumospesos+Visa_mconsumospesos]
-dataset[, f_mpagos_servicios  := mpagodeservicios+mpagomiscuentas]
 dataset[, f_ccomisiones  := ccomisiones_mantenimiento+ccomisiones_otras]
 dataset[, f_mcomisiones  := mcomisiones_mantenimiento+mcomisiones_otras]
 
 # 2 - Lucas Trevisani -----------------------------------------------------
 
-dataset[, balance := total_activos - total_deuda]
-dataset[, ratio_deuda := total_deuda / (total_activos + 1)]
+dataset[, balance := minversiones - mdeuda]
 dataset[, has_debito_transacciones := ifelse(dataset$ctarjeta_debito_transacciones > 0, 1, 0) ]
 dataset[, has_visa := ifelse(dataset$ctarjeta_visa > 0, 1, 0) ]
 dataset[, has_visa_transacciones := ifelse(dataset$ctarjeta_visa_transacciones > 0, 1, 0) ]
@@ -140,10 +139,104 @@ dataset[, has_da := ifelse(dataset$ccuenta_debitos_automaticos + dataset$ctarjet
 
 # 6 - Data & Concept drifting ---------------------------------------------
 
-# dataset <- select(dataset, )
+lista <- c( "foto_mes", "numero_de_cliente", "cliente_edad", "cliente_antiguedad","mrentabilidad","mrentabilidad_annual","mcomisiones",
+            "mactivos_margen","mpasivos_margen","mcuenta_corriente_adicional","mcuenta_corriente", "mdeuda", "gastos_tc",
+            "mcaja_ahorro", "mcaja_ahorro_adicional","mcaja_ahorro_dolares","mcuentas_saldo","mautoservicio", 
+            "ctarjeta_debito_transacciones", "ctarjeta_visa_transacciones",
+            "mtarjeta_visa_consumo","ctarjeta_master_transacciones","mtarjeta_master_consumo","cprestamos_personales",
+            "mprestamos_personales","cprestamos_prendarios","mprestamos_prendarios","cprestamos_hipotecarios",
+            "mprestamos_hipotecarios","cplazo_fijo","mplazo_fijo_dolares","mplazo_fijo_pesos","cinversion1",
+            "minversion1_pesos","minversion1_dolares","cinversion2","minversion2","cseguro_vida","cseguro_auto",
+            "cseguro_vivienda","cseguro_accidentes_personales","ccaja_seguridad","cpayroll_trx","mpayroll",
+            "mpayroll2", "cpayroll2_trx","mcuenta_debitos_automaticos","mttarjeta_visa_debitos_automaticos",
+            "mttarjeta_master_debitos_automaticos","mpagodeservicios","mpagomiscuentas","mcajeros_propios_descuentos",
+            "mtarjeta_visa_descuentos","mtarjeta_master_descuentos","mcomisiones_mantenimiento","mcomisiones_otras",
+            "ctransferencias_recibidas","mtransferencias_recibidas","ctransferencias_emitidas",
+            "mtransferencias_emitidas","mextraccion_autoservicio","mcheques_depositados","mcheques_emitidos",
+            "mcheques_depositados_rechazados","mcheques_emitidos_rechazados","thomebanking",
+            "chomebanking_transacciones","ccajas_transacciones","ccajas_consultas","ccajas_depositos",
+            "ccajas_extracciones","ccajas_otras","catm_trx","matm","catm_trx_other","matm_other","cmobile_app_trx",
+            "Master_mfinanciacion_limite","Master_Fvencimiento","Master_Finiciomora","Master_msaldototal",
+            "Master_msaldopesos","Master_msaldodolares","Master_mconsumospesos","Master_mconsumosdolares",
+            "Master_mlimitecompra","Master_madelantopesos","Master_madelantodolares","Master_fultimo_cierre",
+            "Master_mpagado","Master_mpagospesos","Master_mpagosdolares","Master_fechaalta","Master_mconsumototal",
+            "Master_mpagominimo","Visa_delinquency","Visa_status","Visa_mfinanciacion_limite","Visa_Fvencimiento",
+            "Visa_Finiciomora","Visa_msaldototal","Visa_msaldopesos","Visa_msaldodolares","Visa_mconsumospesos",
+            "Visa_mconsumosdolares","Visa_mlimitecompra","Visa_madelantopesos","Visa_madelantodolares",
+            "Visa_fultimo_cierre","Visa_mpagado","Visa_mpagospesos","Visa_mpagosdolares","Visa_fechaalta",
+            "Visa_mconsumototal","Visa_mpagominimo","mv_mfinanciacion_limite","mv_Fvencimiento",
+            "mv_Finiciomora","mv_msaldototal","mv_msaldopesos","mv_msaldodolares","mv_mconsumospesos",
+            "mv_mconsumosdolares","mv_mlimitecompra","mv_madelantopesos","mv_madelantodolares",
+            "mv_fultimo_cierre","mv_mpagado","mv_mpagospesos","mv_mpagosdolares","mv_fechaalta","mv_mconsumototal",
+            "mv_mpagominimo","mvr_Master_mlimitecompra","mvr_Visa_mlimitecompra","mvr_msaldototal",
+            "mvr_msaldopesos","mvr_msaldopesos2","mvr_msaldodolares","mvr_msaldodolares2","mvr_mconsumospesos",
+            "mvr_mconsumosdolares","mvr_madelantopesos","mvr_madelantodolares","mvr_mpagado","mvr_mpagospesos",
+            "mvr_mpagosdolares","mvr_mconsumototal","mvr_mpagominimo","campo1","campo2","campo3","campo4",
+            "campo5","campo6","campo7","campo8","campo12","monto_total","pasamanos","edad_sueldo",
+            "sueldo_otros","compromiso","mdescuentos","desc_gastos","limite_ingresos",
+            "f_ccomisiones", "balance")                       
 
-dataset_fe <- dataset
+no_rank <- colnames(dataset)
+no_rank <- no_rank[!no_rank%in%lista]
+no_rank <- c(no_rank, 'numero_de_cliente', 'foto_mes')
+
+numericas <- dataset %>% 
+  select(lista)
+
+rankear <- function(df){
+  
+  data <- select(df, numero_de_cliente, foto_mes)
+  
+  #browser()
+  for (i in colnames(df)[-1:-2]) {
+    int <- df %>% 
+      select(numero_de_cliente, foto_mes, i) 
+    neg  <- filter(int, int[,3] < 0)
+    pos  <- filter(int, int[,3] > 0)
+    cero <- filter(int, int[,3] == 0)
+    neg <- neg %>% 
+      mutate(
+        across(
+          .cols = c(where(~is.numeric(.)), -c(numero_de_cliente, foto_mes)),
+          .fns  = ~frank(desc(.), ties.method = 'dense')
+        )
+      ) 
+    neg[,3] <- neg[,3]*-1
+    pos <- pos %>% 
+      mutate(
+        across(
+          .cols = c(where(~is.numeric(.)), -c(numero_de_cliente, foto_mes)),
+          .fns  = ~frank(., ties.method = 'dense')
+        )
+      )
+    
+    rankeada <- rbind(neg,cero,pos)
+    
+    int <- select(int, -i) %>% 
+      left_join(rankeada)
+    
+    colnames(int)[3] <- glue::glue(i, "_rank")
+    
+    data <- left_join(data, int)
+  }
+  
+  return(data)
+}
+
+rankeadas <- rankear(numericas)
+
+fwrite(rankeadas, 'variables_rankeadas_c2.csv')
+
+rm(numericas)
+
+dataset <- dataset %>% 
+  select(-lista[-c(1:2)]) %>% 
+  left_join(rankeadas)
+
+
+# 7 - Exporto data --------------------------------------------------------
 
 setwd('C:/Users/lisan/OneDrive/Escritorio/MAESTRIA/eyf/labo/lisandro/competencia2')
-fwrite(dataset_fe, 'dataset_fe_c2.csv')
+fwrite(dataset, 'dataset_fe_c2_rankeado.csv')
 
+prueba <- fread('dataset_fe_c2_rankeado.csv')
