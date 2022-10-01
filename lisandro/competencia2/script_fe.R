@@ -21,8 +21,11 @@ dataset <- fread( "./datasets/competencia2_2022.csv.gz" )
 dataset[is.na(dataset)] <- 0                                                    # Imputo a 0 porque sí 
  any(is.na(dataset))
 
+#la clase ternaraia al ser un character vacío "" y no un nan, no es afectada por la imputacion
+
+
 dataset[ foto_mes==202103, 
-         clase_binaria :=  ifelse( clase_ternaria=="CONTINUA", "NO", "SI" ) ]   # Estos nans no se imputan
+         clase_binaria :=  ifelse( clase_ternaria=="CONTINUA", "NO", "SI" ) ]   
 
 
 # 2 - Variables Visa - Master ---------------------------------------------
@@ -117,16 +120,11 @@ dataset <- dataset %>%
     limite_ingresos = mv_mlimitecompra/mingresos
   )
 
-# 5 - Ideas Github --------------------------------------------------------
 
-
-#  * 1 - Agostina Simonelli -----------------------------------------------
+# 5 - Otras ideas ---------------------------------------------------------
 
 dataset[, f_ccomisiones  := ccomisiones_mantenimiento+ccomisiones_otras]
 dataset[, f_mcomisiones  := mcomisiones_mantenimiento+mcomisiones_otras]
-
-# 2 - Lucas Trevisani -----------------------------------------------------
-
 dataset[, balance := minversiones - mdeuda]
 dataset[, has_debito_transacciones := ifelse(dataset$ctarjeta_debito_transacciones > 0, 1, 0) ]
 dataset[, has_visa := ifelse(dataset$ctarjeta_visa > 0, 1, 0) ]
@@ -137,7 +135,8 @@ dataset[, has_payroll := ifelse(dataset$cpayroll_trx + dataset$cpayroll2_trx  > 
 dataset[, has_pmc := ifelse(dataset$cpagomiscuentas  > 0, 1, 0) ]
 dataset[, has_da := ifelse(dataset$ccuenta_debitos_automaticos + dataset$ctarjeta_visa_debitos_automaticos + dataset$ctarjeta_master_debitos_automaticos  > 0, 1, 0) ]
 
-# 6 - Data & Concept drifting ---------------------------------------------
+
+# 6 - Rankeo --------------------------------------------------------------
 
 lista <- c( "foto_mes", "numero_de_cliente", "cliente_edad", "cliente_antiguedad","mrentabilidad","mrentabilidad_annual","mcomisiones",
             "mactivos_margen","mpasivos_margen","mcuenta_corriente_adicional","mcuenta_corriente", "mdeuda", "gastos_tc",
@@ -237,6 +236,6 @@ dataset <- dataset %>%
 # 7 - Exporto data --------------------------------------------------------
 
 setwd('C:/Users/lisan/OneDrive/Escritorio/MAESTRIA/eyf/labo/lisandro/competencia2')
-fwrite(dataset, 'dataset_fe_c2_rankeado.csv')
+fwrite(dataset, 'dataset_fe_c2_rankeado_nobinaria.csv')
 
-prueba <- fread('dataset_fe_c2_rankeado.csv')
+
