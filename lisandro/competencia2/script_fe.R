@@ -253,3 +253,20 @@ setwd('C:/Users/lisan/OneDrive/Escritorio/MAESTRIA/eyf/labo/lisandro/competencia
 fwrite(dataset, 'dataset_fe_c2_rankeado_pormes_nobinaria.csv')
 
 
+
+# 8 - Recupero data y borro por data drifting -----------------------------
+
+setwd('C:/Users/lisan/OneDrive/Escritorio/MAESTRIA/eyf/labo/lisandro/competencia2/FE')
+
+dataset <- fread('./dataset_fe_c2_rankeado_pormes_nobinaria.csv')
+
+drifteadas <- c('f_mcomisiones', 'productos_comi', 'ccajas_otras_rank', 'ccajas_depositos_rank', 'mvr_mpagado_rank', 'Master_Finiciomora_rank',
+                'Visa_Finiciomora_rank', 'mv_mconsumosdolares_rank', 'minversiones', 'cprestamos_prendarios_rank', 'cprestamos_hipotecarios_rank',
+                'mcajeros_propios_descuentos_rank', 'mtarjeta_visa_descuentos_rank', 'Visa_delinquency_rank', 'mvr_Master_mlimitecompra_rank',
+                'mvr_Visa_mlimitecompra_rank', 'mvr_madelantodolares_rank', 'sueldo_otros_rank', 'Master_status', 'cprestamos_personales_rank',
+                'ccallcenter_transacciones', 'Visa_status_rank', 'mpasivos_margen_rank', 'mprestamos_prendarios_rank')
+
+
+dataset <- dataset %>% 
+  select(-drifteadas)
+fwrite(dataset, 'dataset_fe_c2_rankeado_pormes_nobinaria_drifting.csv')
