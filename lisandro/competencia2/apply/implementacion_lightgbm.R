@@ -137,3 +137,11 @@ for( envios  in  cortes )
           file= paste0(  PARAM$experimento, "_", envios, ".csv" ),
           sep= "," )
 }
+
+
+
+
+# Mensaje -----------------------------------------------------------------
+
+
+# El punto de corte del submit seleccionado fue de 9.250 envios
