@@ -5,6 +5,7 @@ require(dplyr)
 require(glue)
 require(readxl)
 require(stringr)
+require(purrr)
 
 setwd('C:/Users/lisan/OneDrive/Escritorio/MAESTRIA/eyf')
 dataset <- fread( "./datasets/competencia2_2022.csv.gz" )
@@ -24,8 +25,8 @@ dataset[is.na(dataset)] <- 0                                                    
 #la clase ternaraia al ser un character vacío "" y no un nan, no es afectada por la imputacion
 
 
-dataset[ foto_mes==202103, 
-         clase_binaria :=  ifelse( clase_ternaria=="CONTINUA", "NO", "SI" ) ]   
+# dataset[ foto_mes==202103, 
+#          clase_binaria :=  ifelse( clase_ternaria=="CONTINUA", "NO", "SI" ) ]   
 
 
 # 2 - Variables Visa - Master ---------------------------------------------
@@ -222,11 +223,22 @@ rankear <- function(df){
   return(data)
 }
 
-rankeadas <- rankear(numericas)
 
-fwrite(rankeadas, 'variables_rankeadas_c2.csv')
+enero <- filter(numericas, foto_mes == 202101) 
+febrero <- filter(numericas, foto_mes == 202102)
+marzo <- filter(numericas, foto_mes == 202103)
+abril <- filter(numericas, foto_mes == 202104)
+mayo <- filter(numericas, foto_mes == 202105)
 
-rm(numericas)
+enero <- rankear(enero)
+febrero <- rankear(febrero)
+marzo <- rankear(marzo)
+abril <- rankear(abril)
+mayo <- rankear(mayo)
+
+rankeadas <- rbind(enero, febrero, marzo, abril, mayo)
+
+rm(numericas, enero, febrero, marzo, abril, mayo)
 
 dataset <- dataset %>% 
   select(-lista[-c(1:2)]) %>% 
@@ -235,7 +247,24 @@ dataset <- dataset %>%
 
 # 7 - Exporto data --------------------------------------------------------
 
-setwd('C:/Users/lisan/OneDrive/Escritorio/MAESTRIA/eyf/labo/lisandro/competencia2')
-fwrite(dataset, 'dataset_fe_c2_rankeado_nobinaria.csv')
+setwd('C:/Users/lisan/OneDrive/Escritorio/MAESTRIA/eyf/labo/lisandro/competencia2/FE')
+fwrite(dataset, 'dataset_fe_c2_rankeado_pormes_nobinaria.csv')
 
 
+
+# 8 - Recupero data y borro por data drifting -----------------------------
+
+setwd('C:/Users/lisan/OneDrive/Escritorio/MAESTRIA/eyf/labo/lisandro/competencia2/FE')
+
+dataset <- fread('./dataset_fe_c2_rankeado_pormes_nobinaria.csv')
+
+drifteadas <- c('f_mcomisiones', 'productos_comi', 'ccajas_otras_rank', 'ccajas_depositos_rank', 'mvr_mpagado_rank', 'Master_Finiciomora_rank',
+                'Visa_Finiciomora_rank', 'mv_mconsumosdolares_rank', 'minversiones', 'cprestamos_prendarios_rank', 'cprestamos_hipotecarios_rank',
+                'mcajeros_propios_descuentos_rank', 'mtarjeta_visa_descuentos_rank', 'Visa_delinquency_rank', 'mvr_Master_mlimitecompra_rank',
+                'mvr_Visa_mlimitecompra_rank', 'mvr_madelantodolares_rank', 'sueldo_otros_rank', 'Master_status', 'cprestamos_personales_rank',
+                'ccallcenter_transacciones', 'Visa_status_rank', 'mpasivos_margen_rank', 'mprestamos_prendarios_rank')
+
+
+dataset <- dataset %>% 
+  select(-drifteadas)
+fwrite(dataset, 'dataset_fe_c2_rankeado_pormes_nobinaria_drifting.csv')
